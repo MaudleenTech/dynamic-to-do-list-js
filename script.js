@@ -6,71 +6,73 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     // STEP 2: Select DOM Elements
     // ========================================
-    // Select the "Add Task" button
     const addButton = document.getElementById('add-task-btn');
-
-    // Select the input field where users enter tasks
     const taskInput = document.getElementById('task-input');
-
-    // Select the unordered list that will display tasks
     const taskList = document.getElementById('task-list');
 
     // ========================================
-    // STEP 3: Create the addTask Function
+    // STEP 3: Load Tasks from Local Storage
     // ========================================
-    function addTask() {
-        // Retrieve and trim the value from the input field
-        const taskText = taskInput.value.trim();
+    function loadTasks() {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        storedTasks.forEach(taskText => addTask(taskText, false)); 
+    }
 
-        // Check if taskText is empty
+    // ========================================
+    // STEP 4: Save Tasks to Local Storage
+    // ========================================
+    function saveTasks() {
+        const tasks = [];
+        document.querySelectorAll('#task-list li').forEach(li => {
+            // Extract text content before the "Remove" button
+            const taskText = li.firstChild.textContent.trim();
+            tasks.push(taskText);
+        });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // ========================================
+    // STEP 5: Create the addTask Function
+    // ========================================
+    function addTask(taskText = taskInput.value.trim(), save = true) {
         if (taskText === "") {
-            // Prompt user to enter a task
             alert("Please enter a task!");
-            return; // Exit the function if input is empty
+            return;
         }
 
-        // ========================================
-        // STEP 4: Task Creation and Removal
-        // ========================================
-        // Create a new list item (li) element
         const listItem = document.createElement('li');
-
-        // Set the text content of the list item to the task text
         listItem.textContent = taskText;
 
-        // Create a "Remove" button
         const removeButton = document.createElement('button');
         removeButton.textContent = "Remove";
-        removeButton.className = 'remove-btn';
-        removeButton.classList.add('remove-btn');  
+        removeButton.classList.add('remove-btn');
 
-        // Assign onclick event to remove button
+        // Handle task removal
         removeButton.onclick = function() {
-            // Remove the list item from the task list
             taskList.removeChild(listItem);
+            saveTasks(); // Update Local Storage after removal
         };
 
-        // Append the remove button to the list item
         listItem.appendChild(removeButton);
-
-        // Append the list item to the task list
         taskList.appendChild(listItem);
 
-        // Clear the input field
+        // Save new task to Local Storage if needed
+        if (save) saveTasks();
+
         taskInput.value = "";
     }
 
     // ========================================
-    // STEP 5: Attach Event Listeners
+    // STEP 6: Attach Event Listeners
     // ========================================
-    // Add event listener to the "Add Task" button
-    addButton.addEventListener('click', addTask);
+    addButton.addEventListener('click', () => addTask());
 
-    // Add event listener for "Enter" key press in the input field
     taskInput.addEventListener('keypress', function(event) {
-        // Check if the pressed key is "Enter"
-        if (event.key === 'Enter') {
-            addTask();
-        }
+        if (event.key === 'Enter') addTask();
     });
+
+    // ========================================
+    // STEP 7: Initialize the App
+    // ========================================
+    loadTasks();
 });
